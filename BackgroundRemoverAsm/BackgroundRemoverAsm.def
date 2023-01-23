@@ -1,0 +1,2 @@
+LIBRARY BackgroundRemoverAsm
+EXPORTS MyProc1
