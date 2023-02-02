@@ -12,7 +12,6 @@ namespace BackgroundRemover.Model
 {
     internal class ThreadsCS : Threads
     {
-        private readonly int scope = 20;
         private Color[] pixels;
 
         /**
@@ -32,7 +31,7 @@ namespace BackgroundRemover.Model
          * Zapisuje przetowrzone pixele do bitmapy
          * Zwraca przetowrzona bitmape
          */
-        public override Bitmap execute()
+        public override (Bitmap, double) execute()
         {
             int number_Pixels = bitPic.Width * bitPic.Height;
             int number_Divisions = 150;
@@ -54,6 +53,9 @@ namespace BackgroundRemover.Model
 
             var tasks = new Task[number_Divisions];
 
+            //pobiera dokładną datę do pomiaru czasu
+            DateTime begin = DateTime.Now;
+
             //petla odpowiedzialna za utworzenie poszczeglonych zadan oraz przypisanie im zakresu do obliczen
             for (int i = 0; i < number_Divisions; i++)
             {
@@ -66,6 +68,9 @@ namespace BackgroundRemover.Model
 
             Task.WaitAll(tasks);
 
+            //oblicza czas wykonywania asynchronicznych zadan
+            TimeSpan time = DateTime.Now - begin;
+
             //petla odpowiedzialna za wpisanie przetowrzonych pixeli do wyjsciowej bitmapy
             for (int i = 0; i < number_Pixels; i++)
             {
@@ -74,7 +79,7 @@ namespace BackgroundRemover.Model
                 bitPic.SetPixel(x, y, pixels[i]);
             }
 
-            return bitPic;
+            return (bitPic, time.TotalMilliseconds);
         }
 
         /**
@@ -83,9 +88,30 @@ namespace BackgroundRemover.Model
          */
         public void check_Pixels(int start, int end)
         {
+            int iterator = 0;
+            int[] fourPixels = new int[4];
+          
             for (int i = start; i < end; i++)
             {
-                pixels[i] = Remover.checkPixel(pixels[i], userColor, scope);
+                fourPixels[iterator] = pixels[i].ToArgb();
+
+                if (++iterator == 4 || i == end)
+                {
+                    int[] color = new int[4];
+                    for (int x = 0; x < 4; x++)
+                    {
+                        color[x] = userColor.ToArgb();
+                    }
+                    Remover.checkPixels(fourPixels, color); // scope wrzucic bezposrednio dom asma
+                    iterator = 0;
+
+                    pixels[i - 3] = Color.FromArgb(fourPixels[0]);
+                    pixels[i - 2] = Color.FromArgb(fourPixels[1]);
+                    pixels[i - 1] = Color.FromArgb(fourPixels[2]);
+                    pixels[i] = Color.FromArgb(fourPixels[3]);
+
+
+                }
             }
 
         }

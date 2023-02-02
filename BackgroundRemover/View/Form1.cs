@@ -72,7 +72,7 @@ namespace BackgroundRemover.View
          */
         private void button_Execute_Click(object sender, EventArgs e)
         { 
-            (Bitmap newImage, long time) = model.calculate_Image(colorDialog1.Color, trackBar1.Value , radioButton1.Checked);
+            (Bitmap newImage, double time) = model.calculate_Image(colorDialog1.Color, trackBar1.Value , radioButton1.Checked);
             label1.Text = $"{time.ToString()} ms.";
             pictureBox2.Image = newImage;
             pictureBox2.Refresh();

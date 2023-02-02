@@ -1,19 +1,19 @@
 ﻿using System.Drawing;
+using System.Runtime.CompilerServices;
 
 namespace RemoverCS
 {
     public class Remover
     {
-        public static Color checkPixel(Color pixel, Color userColor, int scope)
+        public static void checkPixels(int[] pixel, int[] userColor)
         {
-            if (pixel.R - scope < userColor.R && pixel.R + scope > userColor.R &&
-                    pixel.G - scope < userColor.G && pixel.G + scope > userColor.G &&
-                    pixel.B - scope < userColor.B && pixel.B + scope > userColor.B)
+            for (int i = 0; i < pixel.Length; i++)
             {
-                return Color.Empty;
+                if (pixel[i] == userColor[i])
+                {
+                    pixel[i] = 0x00000000;
+                }
             }
-            return pixel;
         }
-
     }
 }

@@ -23,6 +23,6 @@ namespace BackgroundRemover.Model
             bitPic = picture;
         }
 
-        abstract public Bitmap execute();
+        abstract public (Bitmap, double) execute();
     }
 }

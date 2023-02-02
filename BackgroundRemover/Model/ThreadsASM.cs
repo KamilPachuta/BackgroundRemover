@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 
 namespace BackgroundRemover.Model
 {
@@ -13,8 +14,8 @@ namespace BackgroundRemover.Model
         private readonly int scope = 0;
         private int[] pixels;
 
-        [DllImport(@"D:\Documents\GitHub\lll\BackgroundRemove\x64\Debug\BackgroundRemoverAsm.dll")]
-        private static extern int MyProc1(int pixel, int color, int scope);
+        [DllImport(@"C:\Users\Hiroshi\Desktop\TODAY\BackgroundRemover\x64\Debug\BackgroundRemoverAsm.dll")]
+        private static extern void MyProc1(int[] pixels, int[] color);
         /**
          * ThreadsCS konstruktor - Przypisauje wartość minimalną oraz 
          * maksymalna używanych wątkow oraz wywołuje konstruktor klasy bazowej
@@ -33,7 +34,7 @@ namespace BackgroundRemover.Model
          * Zapisuje przetowrzone pixele do bitmapy
          * Zwraca przetowrzona bitmape
          */
-        public override Bitmap execute()
+        public override (Bitmap, double) execute()
         {
             int number_Pixels = bitPic.Width * bitPic.Height;
             int number_Divisions = 150;
@@ -55,6 +56,8 @@ namespace BackgroundRemover.Model
 
             var tasks = new Task[number_Divisions];
 
+            DateTime begin = DateTime.Now;
+
             //petla odpowiedzialna za utworzenie poszczeglonych zadan oraz przypisanie im zakresu do obliczen
             for (int i = 0; i < number_Divisions; i++)
             {
@@ -67,6 +70,8 @@ namespace BackgroundRemover.Model
 
             Task.WaitAll(tasks);
 
+            TimeSpan time = DateTime.Now - begin;
+
             //petla odpowiedzialna za wpisanie przetowrzonych pixeli do wyjsciowej bitmapy
             for (int i = 0; i < number_Pixels; i++)
             {
@@ -75,7 +80,7 @@ namespace BackgroundRemover.Model
                 bitPic.SetPixel(x, y, Color.FromArgb(pixels[i]));
             }
 
-            return bitPic;
+            return (bitPic, time.TotalMilliseconds);
         }
 
         /**
@@ -84,14 +89,31 @@ namespace BackgroundRemover.Model
          */
         public void check_Pixels(int start, int end)
         {
-
-            //tutaj wywolac biblioteke asm ktora bedzie przyjmowac wskaznik na tablice pixels typu int, indexsatart i indexend 
+            int iterator = 0;
+            int[] fourPixels = new int[4];
+           
             for (int i = start; i < end; i++)
             {
-                int color = userColor.ToArgb();
-                pixels[i] = MyProc1(pixels[i], color, scope);
-            }
+                fourPixels[iterator] = pixels[i];
 
+                if (++iterator == 4 || i == end)
+                {
+                    int[] color = new int[4];
+                    for(int x = 0; x < 4; x++)
+                    {
+                        color[x] = userColor.ToArgb();
+                    }
+                    MyProc1(fourPixels, color); 
+                    iterator = 0;
+
+                    pixels[i - 3] = fourPixels[0];
+                    pixels[i - 2] = fourPixels[1];
+                    pixels[i - 1] = fourPixels[2];
+                    pixels[i] = fourPixels[3];
+                    
+
+                }
+            }
         }
     }
 }
